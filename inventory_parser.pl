@@ -10,16 +10,6 @@ sub main{
 
 	&login;
 
-#	my $output="You have: an aquamarine potion, a blue bubbly potion, a brown bag, two dark
-#  flasks, three sets of eye of newt, three golden daggers, a grey scroll, a
-#  hammer of thunderbolts, two hazy potions, an ivory coffer, four wand of
-#  the efreetis, two werewolf sire skulls.  Inventory weight is 227 lbs.
-#(118 H 3 M):";
-
-#	my @inventory=$output;
-#	my $inventory=\@inventory;
-#	&parse($inventory);
-
 }
 
 sub login{
@@ -65,11 +55,11 @@ sub login{
 		$t->waitfor('/Please enter password:/');
 		$t->print($roster{$name});
 
-		$t->waitfor('/\(23 H 2 M\):/');
+		$t->waitfor('/\(\d+ H \d+ M\):/');
 		$t->print("rem all");
-		$t->waitfor('/\(23 H 2 M\):/');
+		$t->waitfor('/\(\d+ H \d+ M\):/');
 		$t->print("i");
-		my @inventory = $t->waitfor('/\(23 H 2 M\):/');
+		my @inventory = $t->waitfor('/\(\d+ H \d+ M\):/');
 		my $inv_ref=\@inventory;
 		&parse($inv_ref);
 	}
@@ -86,7 +76,25 @@ sub parse{
 	my($inv_ref)=@_;
 
 	my @inventory = @{$inv_ref};
-	
-	print "@inventory";
+
+#	open(OUTPUT,">output.txt");
+#	print OUTPUT "@inventory";
+
+
+#reconstruct inventory lines
+	my $result="";
+	foreach my $line (@inventory){
+		$line=~s/\n|\r//g;
+		$result=$result.$line;
+	}
+
+	$result =~ /You have: (.*) Inventory weight is (\d+) lbs./;
+	print "items: $1\nweight: $2\n";
+
+#sample output
+#items: two Ahrot's magic strings (+1), two Medallion of Durins, an  aquamarine potion (M), a blue bubbly potion (M), a crown of foam, two dark  flasks (M), two sets of eye of newt (M), two galvorn rings, a galvorn  shield, a giant hammer of thunder (+3), a grey scroll (M), two hazy  potions (M), an imeril leggings (+1), some imeril sleeves (+1), an ivory  coffer, a knapsack, a mask of distortion, some mithril lamella armor, some  obsidian gauntlets, a silver hoop, two sundorian tassles, some volcanic  boots (+1), four wand of the efreetis (M). 
+#weight: 182
+
+
 
 }
