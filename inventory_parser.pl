@@ -33,7 +33,7 @@ foreach my $name (keys %roster){
 
 	$t->open($mud_ip);
 
-#this is what the login looksl like
+#this is what the login looks like
 #Please enter name:
 #Please enter password:
 #(23 H 2 M):
