@@ -8,8 +8,8 @@ use Net::Telnet;
 
 sub main{
 
-	&login;
-
+#	&login;		#tmp uncommented
+	&parse;		
 }
 
 sub login{
@@ -73,24 +73,29 @@ sub parse{
 #  is 248 lbs.
 #(120 H 3 M):
 
-	my($inv_ref)=@_;
+#	my($inv_ref)=@_;		#temporary uncomment 
 
-	my @inventory = @{$inv_ref};
+#	my @inventory = @{$inv_ref};	#tmp uncomment
 
-#	open(OUTPUT,">output.txt");
-#	print OUTPUT "@inventory";
+#	open(OUTPUT,">output.txt"); 	#tmp uncomment 
+#	print OUTPUT "@inventory";	#tmp uncomment
+	open(INPUT,"output.txt");
 
 
 #reconstruct inventory lines
 	my $result="";
+	my @inventory=<INPUT>;
 	foreach my $line (@inventory){
+		$line=~s/\(\d+ H \d+ M\)://g;
 		$line=~s/\n|\r//g;
 		$result=$result.$line;
 	}
 
 	$result =~ /You have: (.*) Inventory weight is (\d+) lbs./;
 	print "items: $1\nweight: $2\n";
-
+	print "##############################\n";
+	&parse_items($1);
+	
 #sample output
 #items: two Ahrot's magic strings (+1), two Medallion of Durins, an  aquamarine potion (M), a blue bubbly potion (M), a crown of foam, two dark  flasks (M), two sets of eye of newt (M), two galvorn rings, a galvorn  shield, a giant hammer of thunder (+3), a grey scroll (M), two hazy  potions (M), an imeril leggings (+1), some imeril sleeves (+1), an ivory  coffer, a knapsack, a mask of distortion, some mithril lamella armor, some  obsidian gauntlets, a silver hoop, two sundorian tassles, some volcanic  boots (+1), four wand of the efreetis (M). 
 #weight: 182
@@ -98,3 +103,30 @@ sub parse{
 
 
 }
+
+sub parse_items{
+	my %keywords;
+	
+	$keywords{'some'}=1;
+	$keywords{'a'}=1;	
+	$keywords{'an'}=1;	
+	$keywords{'the'}=1;	
+
+	my($parse_items)=@_;
+
+	$parse_items=~s/,\s+/,/g;
+	$parse_items=~s/\s+/ /g;
+	$parse_items=~s/\.//g;
+	$parse_items=~s/\s+$//g;
+	my @inventory=split(/,/,$parse_items);
+
+	foreach my $item(@inventory){
+		foreach my $k(keys %keywords){
+			if($item=~/^$k\s(.*)/){
+				print "$item ==> [$keywords{$k} $1]\n";
+			}
+		}
+	}
+}
+
+
