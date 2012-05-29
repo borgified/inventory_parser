@@ -30,8 +30,18 @@ sub main {
 				print "-----------------\n";
 				print "$inventory\n";
 				print "-----------------\n";
-				&parse_items($inventory);
+				my $items_href=&parse_items($inventory);
+				&store_results($items_href);
 		}
+}
+
+#input: hash ref containing item's quantity and name
+#output: none
+
+#retrieves items from hash and stores it into a mysql database
+
+sub store_results {
+		my($items_href)=@_;
 }
 
 
@@ -175,3 +185,8 @@ sub parse_items{
 		}
 }
 
+#input: the plural form of some noun
+#output: the singular form of the same noun
+sub unpluralize {
+	my $string=(@_);
+}
