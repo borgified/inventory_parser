@@ -3,6 +3,7 @@
 use warnings;
 use strict;
 use Net::Telnet;
+use DBI;
 
 &main;
 
@@ -42,6 +43,30 @@ sub main {
 
 sub store_results {
 	my($items_href)=@_;
+#$hash{'item_name'}='quantity';
+
+	my $my_cnf = '/secret/my_cnf.cnf';
+
+#my_cnf.cnf looks something like this
+#[inventory_parser]
+#host            = localhost
+#database        = xxxxxx
+#user            = xxxxxx
+#password        = xxxxxx
+
+	my $dbh = DBI->connect("DBI:mysql:"
+			. ";mysql_read_default_file=$my_cnf"
+			.';mysql_read_default_group=inventory_parser',
+			undef,
+			undef
+			) or die "something went wrong ($DBI::errstr)";
+
+
+#check if table exists, if not create
+#insert ... on duplicate key update: http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
+#inserting multiple records: http://www.electrictoolbox.com/mysql-insert-multiple-records/
+#potential table columns: char name, location, current weight, item name, item quantity, last checked in date
+
 }
 
 
@@ -189,4 +214,9 @@ sub parse_items{
 #output: the singular form of the same noun
 sub unpluralize {
 	my $string=(@_);
+}
+
+#select a storage char that hasnt been logged in for X number of days and sync up changes
+sub refresh_database {
+
 }
