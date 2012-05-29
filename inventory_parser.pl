@@ -9,10 +9,6 @@ use DBI;
 
 sub main {
 
-#	&login;		#tmp uncommented
-#	&parse;		
-
-
 ### THE PLAN
 #1. get login credentials
 
