@@ -57,7 +57,11 @@ sub store_results {
 			undef
 			) or die "something went wrong ($DBI::errstr)";
 
-
+	my $sql="CREATE TABLE IF NOT EXISTS inventory_parser(item_name VARCHAR(50), quantity INT(8))";
+	my $sth=$dbh->prepare($sql);
+	$sth->execute();
+	$dbh->disconnect;
+ 
 #check if table exists, if not create
 #insert ... on duplicate key update: http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
 #inserting multiple records: http://www.electrictoolbox.com/mysql-insert-multiple-records/
