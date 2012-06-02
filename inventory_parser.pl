@@ -39,6 +39,8 @@ sub main {
 
 sub store_results {
 	my($items_href)=@_;
+	#print %$items_href;
+	
 #$hash{'item_name'}='quantity';
 
 	my $my_cnf = '/secret/my_cnf.cnf';
@@ -57,11 +59,28 @@ sub store_results {
 			undef
 			) or die "something went wrong ($DBI::errstr)";
 
-	my $sql="CREATE TABLE IF NOT EXISTS inventory_parser(item_name VARCHAR(50), quantity INT(8))";
+	# grant select, insert, update on isengard.* to dm_isengard@'localhost' identified by 'pwd';
+	# flush privileges;
+	my $sql="CREATE TABLE IF NOT EXISTS inventory_parser(id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),char_name VARCHAR(20), location VARCHAR(40), current_weight INT(3), item_name VARCHAR(50), item_quantity INT(4), check_in_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 	my $sth=$dbh->prepare($sql);
 	$sth->execute();
+
+	foreach my $k (sort keys %$items_href){
+		#print "$k: $$items_href{$k}\n";
+		my $item_quantity="$$items_href{$k}";
+		$k=~s/\'/\\'/;
+		#$k=~s/\)/)/;
+		#$k=~s/\(|\'|\)/\\/g;
+		print "$item_quantity : `$k`\n";
+		
+		my $sql2="INSERT INTO inventory_parser(item_name,item_quantity) VALUES (\'$k\',\'$item_quantity\')";
+		my $sth2=$dbh->prepare($sql2); 
+		$sth2->execute();
+
+	}
 	$dbh->disconnect;
- 
+	exit;
+
 #check if table exists, if not create
 #insert ... on duplicate key update: http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
 #inserting multiple records: http://www.electrictoolbox.com/mysql-insert-multiple-records/
@@ -168,6 +187,7 @@ sub is_valid{
 
 sub parse_items{
 	my %keywords;
+	my %output;
 
 	$keywords{'some'}=1;
 	$keywords{'a'}=1;	
@@ -205,9 +225,11 @@ sub parse_items{
 		foreach my $k(keys %keywords){
 			if($item=~/^$k\s(.*)/){
 				print "$item ==> [$keywords{$k} $1]\n";
+				$output{$1}="$keywords{$k}";
 			}
 		}
 	}
+	return \%output;
 }
 
 #input: the plural form of some noun
