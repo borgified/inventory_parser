@@ -24,11 +24,15 @@ sub main {
 
 	foreach my $name (keys %{$login}){
 		my $inventory = &login($mud_ip,$mud_port,$name,$$login{$name});
+		$inventory =~ /(\d+)(.*)/;
+		my $weight = $1;
+		$inventory = $2;
 		print "-----------------\n";
+		print "weight: $weight\n";
 		print "$inventory\n";
 		print "-----------------\n";
 		my $items_href=&parse_items($inventory);
-		&store_results($items_href);
+		&store_results($items_href,$name,$weight);
 	}
 }
 
@@ -38,7 +42,7 @@ sub main {
 #retrieves items from hash and stores it into a mysql database
 
 sub store_results {
-	my($items_href)=@_;
+	my($items_href,$name,$weight)=@_;
 	#print %$items_href;
 	
 #$hash{'item_name'}='quantity';
@@ -65,21 +69,27 @@ sub store_results {
 	my $sth=$dbh->prepare($sql);
 	$sth->execute();
 
+
+	#delete old records
+	my $sql3="DELETE from inventory_parser where char_name=\'$name\'";
+	my $sth3=$dbh->prepare($sql3);
+	$sth3->execute();
+
+	#populate with new records
 	foreach my $k (sort keys %$items_href){
 		#print "$k: $$items_href{$k}\n";
 		my $item_quantity="$$items_href{$k}";
 		$k=~s/\'/\\'/;
 		#$k=~s/\)/)/;
 		#$k=~s/\(|\'|\)/\\/g;
-		print "$item_quantity : `$k`\n";
+		print "$name : $item_quantity : `$k`\n";
 		
-		my $sql2="INSERT INTO inventory_parser(item_name,item_quantity) VALUES (\'$k\',\'$item_quantity\')";
+		my $sql2="INSERT INTO inventory_parser(char_name,item_name,item_quantity,current_weight) VALUES (\'$name\',\'$k\',\'$item_quantity\',\'$weight\')";
 		my $sth2=$dbh->prepare($sql2); 
 		$sth2->execute();
-
 	}
+
 	$dbh->disconnect;
-	exit;
 
 #check if table exists, if not create
 #insert ... on duplicate key update: http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
@@ -177,6 +187,7 @@ sub is_valid{
 
 	$result =~ /You have: (.*)\.  Inventory weight is (\d+) lbs./;
 	my $items = $1;
+	$items=$2.$items; #tack on the weight to the output, we'll remove it later
 	if($items !~ /\.|just arrived/){
 		return $items;
 	}
